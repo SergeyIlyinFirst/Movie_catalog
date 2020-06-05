@@ -1,0 +1,60 @@
+﻿@{
+    ViewData["Title"] = "фильмы";
+}
+@model ReflectionIT.Mvc.Paging.PagingList<Film>
+
+@if (Model.Count() == 0)
+{
+    <p align="center" class="alert">Нет фильмов!</p>
+}
+else
+{
+    <p align="center" class="alert">@TempData["message2"]</p>
+    <div class="row justify-content-center">
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">Название</th>
+                    <th scope="col">Режиссёр</th>
+                    <th scope="col">Год</th>
+                    <th scope="col">Добавил</th>
+                    <th scope="col">Действия</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>
+                            @item.Title
+                        </td>
+                        <td>
+                            @item.Regisseur
+                        </td>
+                        <td>
+                            @item.YearofManufacture.ToString("yyyy")
+                        </td>
+                        <td>
+                            @item.User.UserName
+                        </td>
+                        <td>
+                            <a target="_blank" asp-controller="Film" asp-action="Details" asp-route-id="@item.Id">Подробнее</a>
+                            @if (User.Identity.IsAuthenticated && User.FindFirst(ClaimTypes.NameIdentifier).Value == item.UserId)
+                            {
+                                <span> |</span>
+                                <a asp-controller="Film" asp-action="EditFilm" asp-route-id="@item.Id" asp-route-userId="@item.UserId">Изменить</a>
+                                <span> |</span>
+                                <a asp-controller="Film" asp-action="Delete" asp-route-id="@item.Id" asp-route-userId="@item.UserId" onclick="confirm('Уверены?')">Удалить</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="row justify-content-center">
+        <nav>
+            <vc:pager paging-list="@Model" />
+        </nav>
+    </div>
+}

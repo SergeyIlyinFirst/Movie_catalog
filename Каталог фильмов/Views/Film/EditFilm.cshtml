@@ -1,0 +1,44 @@
+﻿@{
+    ViewData["Title"] = "редактор фильма";
+}
+@model EditFilmViewModel
+
+<p align="center">@TempData["message3"]</p>
+<div class="row justify-content-center align-content-center align-items-center">
+    <div class="col-md-4">
+        <section>
+            <form enctype="multipart/form-data" asp-action="editfilm" asp-antiforgery="true" asp-controller="film" method="post">
+                <input asp-for="Id" type="hidden" />
+                <div class="form-group">
+                    <label>Название</label>
+                    <input asp-for="Title" class="form-control" />
+                    <span asp-validation-for="Title" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label>Описание</label>
+                    <textarea asp-for="Description" class="form-control"></textarea>
+                    <span asp-validation-for="Description" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label>Режиссёр</label>
+                    <input asp-for="Regisseur" class="form-control" />
+                    <span asp-validation-for="Regisseur" class="text-danger"></span>
+                </div>
+                <div class="form-group">
+                    <label>Год выпуска</label>
+                    <input type="date" asp-for="YearofManufacture" class="form-control" />
+                    <span asp-validation-for="YearofManufacture" class="text-danger"></span>
+                </div>
+                <img class="mb-3 mt-1" width="90" height="100" src="data:image/jpeg;base64,@(Convert.ToBase64String(Model.Poster))" alt="Постер">
+                <input asp-for="PosterAsString" type="hidden" />
+                <div class="form-group">
+                    <input type="file" asp-for="Image" class="form-control-file" />
+                </div>
+                <hr />
+                <div class="form-group">
+                    <button type="submit" class="btn btn-primary">Сохранить</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
