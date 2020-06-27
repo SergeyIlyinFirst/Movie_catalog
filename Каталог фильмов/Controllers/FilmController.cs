@@ -23,13 +23,41 @@ namespace Каталог_фильмов.Controllers
             _db = db;
         }
         //Список фильмов
-        public async Task<IActionResult> Index(int page = 1)
+        public async Task<IActionResult> Index(int page = 1, string search = null)
         {
             try
             {
-                IOrderedQueryable<Film> films = _db.GetFilms();
+                IOrderedQueryable<Film> films = _db.GetFilms(search);
                 var model = await PagingList.CreateAsync(films, 10, page);
                 return View(model);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.ToString());
+                return RedirectToAction("error", "film");
+            }
+        }
+        //Список фильмов с сайта 'Кинопоиск'
+        public async Task<IActionResult> FilmsFromKinopoisk(string search)
+        {
+            try
+            {
+                KinopoiskFilm[] films = await _db.GetFilmsFromKinopoisk(search);
+                return View(films);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.ToString());
+                return RedirectToAction("error", "film");
+            }
+        }
+        //Список обзоров на фильм с сайта 'Кинопоиск'
+        public async Task<IActionResult> Reviews(int id, string title, string description)
+        {
+            try
+            {
+                Review[] reviews = await _db.GetReviewsOnTheFilm(id);
+                return View(new ReviewViewModel { FilmTitle = title, FilmDescription = description, Reviews = reviews });
             }
             catch (Exception e)
             {

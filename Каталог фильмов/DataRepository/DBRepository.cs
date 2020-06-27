@@ -1,6 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Каталог_фильмов.Data;
 using Каталог_фильмов.Models;
@@ -18,9 +23,59 @@ namespace Каталог_фильмов.DataRepository
         /// Получить список фильмов
         /// </summary>
         /// <returns>IOrderedQueryable<Film></returns>
-        public IOrderedQueryable<Film> GetFilms()
+        public IOrderedQueryable<Film> GetFilms(string search)
         {
-            return db.Films.Include(x => x.User).AsNoTracking().Select(x => new Film { Id = x.Id, Title = x.Title, Regisseur = x.Regisseur, YearofManufacture = x.YearofManufacture, UserId = x.UserId, User = x.User }).OrderByDescending(x => x.Id);
+            if (search != null)
+            {
+                search = search.ToLower();
+                return db.Films.Include(x => x.User).AsNoTracking().Where(x => x.Description.Contains(search) || x.Regisseur.Contains(search) || x.Title.Contains(search) || x.YearofManufacture.ToString().Contains(search)).Select(x => new Film { Id = x.Id, Title = x.Title, Regisseur = x.Regisseur, YearofManufacture = x.YearofManufacture, UserId = x.UserId, User = x.User }).OrderByDescending(x => x.Id);
+            }
+            else
+            {
+                return db.Films.Include(x => x.User).AsNoTracking().Select(x => new Film { Id = x.Id, Title = x.Title, Regisseur = x.Regisseur, YearofManufacture = x.YearofManufacture, UserId = x.UserId, User = x.User }).OrderByDescending(x => x.Id);
+            }
+        }
+        /// <summary>
+        /// Найти фильмы на сайте 'Кинопоиск'
+        /// </summary>
+        /// <returns>KinopoiskFilm[]</returns>
+        public async Task<KinopoiskFilm[]> GetFilmsFromKinopoisk (string search)
+        {
+            HttpClient client = new HttpClient();
+            HttpRequestMessage request = new HttpRequestMessage
+            {
+                RequestUri = new Uri($"https://kinopoiskapiunofficial.tech/api/v2.1/films/search-by-keyword?keyword={search}&page=1"),
+                Method = HttpMethod.Get
+            };
+            request.Headers.Add("X-API-KEY", "47b6e527-0f8d-494c-9d12-2b9c43d9db7b");
+            HttpResponseMessage response = await client.SendAsync(request);
+            HttpContent responseContent = response.Content;
+            string json = await responseContent.ReadAsStringAsync();
+            var result = JsonConvert.DeserializeAnonymousType(json, new { films = new KinopoiskFilm[]{ } });
+            return result.films;
+        }
+        /// <summary>
+        /// Получить рецензии на фильм с сайта 'Кинопоиск'
+        /// </summary>
+        /// <returns>Review[]</returns>
+        public async Task<Review[]> GetReviewsOnTheFilm(int id)
+        {
+            HttpClient client = new HttpClient();
+            HttpRequestMessage request = new HttpRequestMessage
+            {
+                RequestUri = new Uri($"https://kinopoiskapiunofficial.tech/api/v1/reviews?filmId={id}&page=1"),
+                Method = HttpMethod.Get
+            };
+            request.Headers.Add("X-API-KEY", "47b6e527-0f8d-494c-9d12-2b9c43d9db7b");
+            HttpResponseMessage response = await client.SendAsync(request);
+            HttpContent responseContent = response.Content;
+            string json = await responseContent.ReadAsStringAsync();
+            if (string.IsNullOrEmpty(json))
+            {
+                json = "{\"reviews\":[]}";
+            }
+            var result = JsonConvert.DeserializeAnonymousType(json, new { reviews = new Review[] { } });
+            return result.reviews;
         }
         /// <summary>
         /// Получить фильм по Id

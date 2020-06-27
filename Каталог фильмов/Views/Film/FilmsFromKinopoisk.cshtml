@@ -1,0 +1,35 @@
+﻿@{
+    ViewData["Title"] = "фильмы с сайта 'Кинопоиск'";
+}
+@model KinopoiskFilm[]
+
+<div class="row justify-content-center mt-3">
+    <form method="get" class="form-inline mt-0" asp-controller="film" asp-action="filmsfromkinopoisk">
+        <div class="form-group mb-3 mr-2">
+            <input name="search" class="form-control" placeholder="Ключевые слова">
+        </div>
+        <button type="submit" class="btn btn-success mb-3">Найти</button>
+    </form>
+</div>
+@if (!Model.Any())
+{
+    <p align="center" class="text-danger">Нет фильмов!</p>
+}
+else
+{
+    <div class="row justify-content-center">
+        @foreach (var item in Model)
+        {
+            <div class="card mr-2 mb-2" style="width: 18rem;">
+                <img width="150" height="350" src="@item.PosterUrl" class="card-img-top" alt="Постер">
+                <div class="card-body">
+                    <h5 class="card-title">@item.NameRu</h5>
+                    <p class="card-text">@item.Year</p>
+                    <p class="card-text">@item.Description</p>
+                    <hr />
+                    <a target="_blank" href="/film/reviews/@item.FilmId?title=@item.NameRu&description=@item.Description" class="card-link">Рецензии</a>
+                </div>
+            </div>
+        }
+    </div>
+}
